@@ -24,7 +24,7 @@ function Home() {
             morseLetter = database.stringToMorse.letters[letter.toLowerCase()];
           } else if (/[0-9]/.test(letter)) {
             morseLetter = database.stringToMorse.numbers[letter];
-          } else if (/[\n&\'@)(:,=!.\-+\"?\/\ ]/.test(letter)) {
+          } else if (/[\n&'@)(:,=!.\-+"?/ ]/.test(letter)) {
             morseLetter = database.stringToMorse.signals[letter];
           } else {
             morseLetter = "ERROR";
