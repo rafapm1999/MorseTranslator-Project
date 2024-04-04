@@ -6,7 +6,8 @@ function Home() {
   /* Declaraciones */
   const [morseData, setMorseData] = useState("");
   const [morsePulse, setMorsePulse] = useState("");
-  const [binaryPulse, setBinaryPulse] = useState(false);
+  const [binaryPulse, setBinaryPulse] = useState("");
+  const [speedValue, setSpeedValue] = useState(1000)
   let morseTranslation = "";
   let morsePulseArray = [];
 
@@ -14,7 +15,7 @@ function Home() {
 
   /* Funcion de envio de información del usuario para su posterior procesado y traduccion a morse */
   const sendData = (e) => {
-    if (e) {
+    if (e !== "") {
       let letterStringArray = e.split("");
       letterStringArray.forEach(letters => {
         let morseLetter = "";
@@ -36,19 +37,18 @@ function Home() {
         }
       });
       setMorseData(morseTranslation);
-    } else {
+    } else if (e === "") {
       setMorseData("");
     }
   }
+
   /* Funcion con la que analizamos y limpiamos el morse para acabar obteniendo un array de pulsos */
   const readMorse = () => {
-    if (morseData !== "") {
+    if (morseData) {
       let morseString = morseData;
       let morsePulsesLetters = "";
-      let morsePulseWordsArray = morseString.split(" | ");
-      console.log(morsePulseWordsArray);
+      let morsePulseWordsArray = morseString.split(" ");
       morsePulseWordsArray.forEach(morseWord => {
-        console.log(morseWord);
         if (!morseWord.includes("ERROR")) {
           morsePulsesLetters += morseWord.trim().replace(/\s/g, "");
         }
@@ -58,40 +58,60 @@ function Home() {
     }
   }
 
-  const lightTranslation = () => {
-    if (morsePulse !== "") {
-      morsePulse.forEach(pulse => {
-        console.log(pulse);
-        setTimeout(() => {
-          if (pulse === ".") {
-
-            setBinaryPulse(false)
-
-          } else if (pulse === "-") {
-
-            setBinaryPulse(true)
-
-          }
-        }, 1);
-
-      })
-    }
-
+  // Función para detener la ejecución durante un tiempo específico
+  function speed(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
-  async function lightMode() {
-    let read = await readMorse();
-    let translate = await lightTranslation();
+
+
+  const lightTranslation = async () => {
+    if (morsePulseArray.length !== 0) {
+      for (const pulse of morsePulseArray) {
+        if (pulse.includes(".")) {
+          setBinaryPulse(".")
+          await speed(speedValue); // Detener la ejecución durante x segundos
+          setBinaryPulse("")
+          await speed(speedValue/2); 
+        } else if (pulse.includes("-")) {
+          setBinaryPulse("-")
+          await speed(speedValue * 2); // Detener la ejecución durante x segundos
+          setBinaryPulse("")
+          await speed(speedValue/2);
+        } else if (pulse.includes("|")) {
+          setBinaryPulse("")
+          await speed(speedValue);
+        }
+      }
+      setBinaryPulse("")
+    }
+  }
+
+  const lightMode = () => {
+    readMorse();
+    lightTranslation();
   }
 
   /* Renderizado */
   return (
     <div>
-      <textarea placeholder="Introduce el texto a traducir" cols={50} rows={50} onChange={(e) => {
-        sendData(e.target.value)
+      <textarea id="stringTextarea" name="stringTextarea" placeholder="Introduce el texto a traducir" cols={30} rows={30} onChange={(e) => {
+        sendData(e.target.value);
       }} />
-      <textarea cols={50} rows={50} value={morseData === "" ? "Introduce el texto a traducir" : morseData} />
-      <button onClick={lightMode}>Light translate</button>
-      <div style={{ height: "40vh", width: "5vw", backgroundColor: binaryPulse === true ? "white" : "black" }}></div>
+      <textarea id="morseTextarea" name="morseTextarea" cols={30} rows={30} value={morseData === "" ? "Introduce el texto a traducir" : morseData}/>
+      <button onClick={() => lightMode()}>Light translate</button>
+      <div>
+        <input
+          type="range" 
+          id="speed" 
+          name="speed" 
+          min={20} 
+          max={1000}
+          value={speedValue}
+          onChange={ e => setSpeedValue(e.target.value)} />
+        <label htmlFor="speed">Speed</label>
+        <label htmlFor="speed">{` (${speedValue} ${speedValue < 1000 ? "ms" : "seg"})`}</label>
+      </div>
+      <div style={{ height: "40vh", width: "5vw", border: "1px solid red", backgroundColor: binaryPulse !== "" ? "white" : "black"}}></div>
     </div>
   );
 }
