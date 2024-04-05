@@ -10,10 +10,22 @@ function Home() {
   const [speedValue, setSpeedValue] = useState(1000)
   let morseTranslation = "";
   let morsePulseArray = [];
+  let morseSoundOn = false;
+  let audioCtx = new AudioContext();
+  const osc = audioCtx.createOscillator();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(440, audioCtx.currentTime)
 
   /* Funciones */
+  const startOsc = () => {
+    osc.connect(audioCtx.destination);
 
+    osc.start();
+    osc.stop(audioCtx.currentTime + 2)
+
+  }
   /* Funcion de envio de información del usuario para su posterior procesado y traduccion a morse */
+ 
   const sendData = (e) => {
     if (e !== "") {
       let letterStringArray = e.split("");
@@ -99,6 +111,7 @@ function Home() {
       }} />
       <textarea id="morseTextarea" name="morseTextarea" cols={30} rows={30} value={morseData === "" ? "Introduce el texto a traducir" : morseData}/>
       <button onClick={() => lightMode()}>Light translate</button>
+      <button onClick={startOsc}></button>
       <div>
         <input
           type="range" 
