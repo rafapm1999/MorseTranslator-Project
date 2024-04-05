@@ -1,29 +1,20 @@
 /* import './Home.css'; */
-import { useState } from "react"
+import { useState, useEffect} from "react"
 import database from "../../db/morseCodeTranslator.json"
+
 
 function Home() {
   /* Declaraciones */
   const [morseData, setMorseData] = useState("");
-  const [morsePulse, setMorsePulse] = useState("");
   const [binaryPulse, setBinaryPulse] = useState("");
-  const [speedValue, setSpeedValue] = useState(1000)
+  const [speedValue, setSpeedValue] = useState(1000);
+  const [pitchValue, setPitchValue] = useState(556);
   let morseTranslation = "";
   let morsePulseArray = [];
-  let morseSoundOn = false;
   let audioCtx = new AudioContext();
-  const osc = audioCtx.createOscillator();
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(440, audioCtx.currentTime)
 
   /* Funciones */
-  const startOsc = () => {
-    osc.connect(audioCtx.destination);
 
-    osc.start();
-    osc.stop(audioCtx.currentTime + 2)
-
-  }
   /* Funcion de envio de información del usuario para su posterior procesado y traduccion a morse */
  
   const sendData = (e) => {
@@ -65,8 +56,7 @@ function Home() {
           morsePulsesLetters += morseWord.trim().replace(/\s/g, "");
         }
       });
-      morsePulseArray = morsePulsesLetters.split("")
-      setMorsePulse(morsePulseArray)
+      morsePulseArray = morsePulsesLetters.split("");
     }
   }
 
@@ -79,18 +69,29 @@ function Home() {
   const lightTranslation = async () => {
     if (morsePulseArray.length !== 0) {
       for (const pulse of morsePulseArray) {
+        const osc = audioCtx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(pitchValue, audioCtx.currentTime)
+        osc.connect(audioCtx.destination);
         if (pulse.includes(".")) {
-          setBinaryPulse(".")
+          setBinaryPulse(".");
+          osc.start();
           await speed(speedValue); // Detener la ejecución durante x segundos
-          setBinaryPulse("")
+          setBinaryPulse("");
+          osc.stop();
+          osc.connect(audioCtx.destination);
           await speed(speedValue/2); 
         } else if (pulse.includes("-")) {
-          setBinaryPulse("-")
+          setBinaryPulse("-");
+          osc.start();
           await speed(speedValue * 2); // Detener la ejecución durante x segundos
-          setBinaryPulse("")
+          setBinaryPulse("");
+          osc.stop();
+          osc.connect(audioCtx.destination);
           await speed(speedValue/2);
         } else if (pulse.includes("|")) {
-          setBinaryPulse("")
+          setBinaryPulse("");
+          osc.connect(audioCtx.destination);
           await speed(speedValue);
         }
       }
@@ -103,6 +104,9 @@ function Home() {
     lightTranslation();
   }
 
+ 
+
+
   /* Renderizado */
   return (
     <div>
@@ -111,7 +115,7 @@ function Home() {
       }} />
       <textarea id="morseTextarea" name="morseTextarea" cols={30} rows={30} value={morseData === "" ? "Introduce el texto a traducir" : morseData}/>
       <button onClick={() => lightMode()}>Light translate</button>
-      <button onClick={startOsc}></button>
+      
       <div>
         <input
           type="range" 
@@ -123,6 +127,18 @@ function Home() {
           onChange={ e => setSpeedValue(e.target.value)} />
         <label htmlFor="speed">Speed</label>
         <label htmlFor="speed">{` (${speedValue} ${speedValue < 1000 ? "ms" : "seg"})`}</label>
+      </div>
+      <div>
+        <input
+          type="range" 
+          id="pitch" 
+          name="pitch" 
+          min={100} 
+          max={1000}
+          value={pitchValue}
+          onChange={ e => setPitchValue(e.target.value)} />
+        <label htmlFor="pitch">Pitch</label>
+        <label htmlFor="pitch">{` (${pitchValue} Hz)`}</label>
       </div>
       <div style={{ height: "40vh", width: "5vw", border: "1px solid red", backgroundColor: binaryPulse !== "" ? "white" : "black"}}></div>
     </div>
