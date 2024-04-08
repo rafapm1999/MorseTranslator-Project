@@ -1,0 +1,107 @@
+.main{
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: #011627;
+}
+.textareaMain{
+    width: auto;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: rgba(235, 230, 230, 0.349);
+    margin: 2.5rem; 
+}
+.textareaStyle{
+    resize: none;
+    color: #010b14;
+    font-weight: bold;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 1.2rem;
+    padding: 1.2rem;
+    background-color: #fbfbf2;
+}
+.dark{
+    animation-name: effect;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+}
+.light{
+    -webkit-box-shadow: 0px 0px 300px 26px rgba(255,255,255,0.50);
+    -moz-box-shadow: 0px 0px 300px 26px rgba(255,255,255,0.50);
+    box-shadow: 0px 0px 300px 26px rgba(255,255,255,0.50); 
+}
+.buttonsMain{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+}
+.buttonStyle{
+    margin: 2rem;
+    padding: 1.2rem;
+}
+.shadow-inset-center {
+	-webkit-animation: shadow-inset-center 0.4s ease-out both;
+	        animation: shadow-inset-center 0.4s ease-out both;
+}
+.inputRangesMain{
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    flex-direction: row;
+    width: 50vw;
+}
+.inputRange{
+    width: 12.5vw;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-direction: column;
+    & input{
+        background-color: red;
+    }
+    & label{
+        width: 10vw;
+        text-align: center;
+    }
+    
+}
+@keyframes effect {
+    0%, 100%{
+        -webkit-box-shadow: 0px 0px 180px -30px rgba(255,255,255,0.68);
+    -moz-box-shadow: 0px 0px 180px -30px rgba(255,255,255,0.68);
+    box-shadow: 0px 0px 180px -30px rgba(255,255,255,0.68);
+    }
+    50% {
+        -webkit-box-shadow: 0px 0px 180px -10px rgba(255,255,255,0.68);
+        -moz-box-shadow: 0px 0px 180px -10px rgba(255,255,255,0.68);
+        box-shadow: 0px 0px 180px -10px rgba(255,255,255,0.68);
+    }
+  }
+@-webkit-keyframes shadow-inset-center {
+    0% {
+      -webkit-box-shadow: inset 0 0 0 0 rgba(0, 0, 0, 0);
+              box-shadow: inset 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+    100% {
+      -webkit-box-shadow: inset 0 0 14px 0px rgba(0, 0, 0, 0.5);
+              box-shadow: inset 0 0 14px 0px rgba(0, 0, 0, 0.5);
+    }
+  }
+  @keyframes shadow-inset-center {
+    0% {
+      -webkit-box-shadow: inset 0 0 0 0 rgba(0, 0, 0, 0);
+              box-shadow: inset 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+    100% {
+      -webkit-box-shadow: inset 0 0 14px 0px rgba(0, 0, 0, 0.5);
+              box-shadow: inset 0 0 14px 0px rgba(0, 0, 0, 0.5);
+    }
+  }
+  
