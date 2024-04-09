@@ -1,12 +1,21 @@
-import './Home.css'; 
-import { useState} from "react";
+import "./Home.css";
+import { useState } from "react";
 import database from "../../db/morseCodeTranslator.json";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faVolumeXmark, faVolumeHigh, faVolumeLow, faVolumeOff, faPause, faPlay, faStop} from "@fortawesome/free-solid-svg-icons"
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faVolumeXmark,
+  faVolumeHigh,
+  faVolumeLow,
+  faVolumeOff,
+  faPause,
+  faPlay,
+  faStop,
+  faCircleStop,
+} from "@fortawesome/free-solid-svg-icons";
 
 function Home() {
   /* Declaraciones */
+  // Declaraciones de useState para el manejo de valores modificables para el correcto uso de nuestro proyecto
   const [morseData, setMorseData] = useState("");
   const [binaryPulse, setBinaryPulse] = useState("");
   const [speedValue, setSpeedValue] = useState(1000);
@@ -15,44 +24,40 @@ function Home() {
   const [muteValue, setMuteValue] = useState(false);
   const [playValue, setPlayValue] = useState(false);
   const [stopValue, setStopValue] = useState(false);
+  // Declaraciones de variables
   let morseTranslation = "";
   let morsePulseArray = [];
+  // Declaracion para el manejo de audio
   let audioCtx = new AudioContext();
   const gainNode = audioCtx.createGain();
   gainNode.gain.value = muteValue === true ? 0 : volumeValue;
-  console.log(muteValue);
-  /* Funciones */
 
-  /* Funcion de envio de información del usuario para su posterior procesado y traduccion a morse */
+  /* Funciones */
+  // Funcion para inicializar un oscilador
   const inizialiceOsc = (pitchValue, stopValue) => {
-    if (stopValue) {
-      console.log("Stop");
-    } else {
+    if (stopValue !== true) {
       const osc = audioCtx.createOscillator();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(pitchValue, audioCtx.currentTime)
+      osc.frequency.setValueAtTime(pitchValue, audioCtx.currentTime);
       osc.connect(gainNode).connect(audioCtx.destination);
       return osc;
     }
-    
-  }
- 
+  };
+  /* Funcion de envio de información del usuario para su posterior procesado y traduccion a morse */
   const sendData = (e) => {
     if (e !== "") {
       let letterStringArray = e.split("");
-      letterStringArray.forEach(letters => {
+      letterStringArray.forEach((letters) => {
         let morseLetter = "";
-
         if (/[a-z]/.test(letters.toLowerCase())) {
           morseLetter = database.stringToMorse.letters[letters.toLowerCase()];
         } else if (/[0-9]/.test(letters)) {
           morseLetter = database.stringToMorse.numbers[letters];
-        } else if (/[\ &'@)(:,=!.\-+"?/\/]/.test(letters)) {
+        } else if (/[ &'@)(:,=!.\-+"?/]/.test(letters)) {
           morseLetter = database.stringToMorse.signals[letters];
         } else {
           morseLetter = "ERROR";
-        };
-
+        }
         if (morseLetter) {
           morseTranslation += morseLetter + " ";
         } else {
@@ -63,7 +68,7 @@ function Home() {
     } else if (e === "") {
       setMorseData("");
     }
-  }
+  };
 
   /* Funcion con la que analizamos y limpiamos el morse para acabar obteniendo un array de pulsos */
   const readMorse = () => {
@@ -71,127 +76,169 @@ function Home() {
       let morseString = morseData;
       let morsePulsesLetters = "";
       let morsePulseWordsArray = morseString.split(" ");
-      morsePulseWordsArray.forEach(morseWord => {
+      morsePulseWordsArray.forEach((morseWord) => {
         if (!morseWord.includes("ERROR")) {
           morsePulsesLetters += morseWord.trim().replace(/\s/g, "");
         }
       });
       morsePulseArray = morsePulsesLetters.split("");
     }
-  }
+  };
 
   // Función para detener la ejecución durante un tiempo específico
   function speed(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms/2));
+    return new Promise((resolve) => setTimeout(resolve, ms / 2));
   }
-
+  // Funcion para traducir cada pulse para su procesado final, tanto sonoro como visual
   const translateEachPulse = async (pulse, pitchValue, stopValue) => {
     let oscillator = inizialiceOsc(pitchValue, stopValue);
-        if (stopValue) {
-          oscillator.stop();
-          oscillator.disconnect(gainNode).disconnect(audioCtx.destination);
-        } else if (pulse.includes(".")) {
-          setBinaryPulse(".");
-          oscillator.start();
-          await speed(speedValue); // Detener la ejecución durante x segundos
-          setBinaryPulse("");
-          oscillator.stop();
-          await speed(speedValue/2); 
-        } else if (pulse.includes("-")) {
-          setBinaryPulse("-");
-          oscillator.start();
-          await speed(speedValue * 2);
-          setBinaryPulse("");
-          oscillator.stop();
-          await speed(speedValue/2);
-        } else if (pulse.includes("|")) {
-          setBinaryPulse("");
-          await speed(speedValue);
-        } 
-  }
-
-  const lightTranslation = async() => {
-    if (morsePulseArray.length !== 0 && !stopValue) {
+    if (stopValue === true) {
+      oscillator.stop();
+      oscillator.disconnect(gainNode).disconnect(audioCtx.destination);
+    } else if (pulse.includes(".")) {
+      setBinaryPulse(".");
+      oscillator.start();
+      await speed(speedValue); // Detener la ejecución durante x segundos
+      setBinaryPulse("");
+      oscillator.stop();
+      await speed(speedValue / 2);
+    } else if (pulse.includes("-")) {
+      setBinaryPulse("-");
+      oscillator.start();
+      await speed(speedValue * 2);
+      setBinaryPulse("");
+      oscillator.stop();
+      await speed(speedValue / 2);
+    } else if (pulse.includes("|")) {
+      setBinaryPulse("");
+      await speed(speedValue);
+    }
+  };
+  // Función para verificar si existe valores para traducir y si stopValue no es true
+  const translate = async () => {
+    if (morsePulseArray.length !== 0 && stopValue !== true) {
       for (const pulse of morsePulseArray) {
-        await translateEachPulse(pulse, pitchValue, stopValue)
+        await translateEachPulse(pulse, pitchValue, stopValue);
       }
-      }
-      setBinaryPulse("")
-  }
-
-  const lightMode = (stop, pitch) => {
+    }
+    setPlayValue(false);
+    setBinaryPulse("");
+  };
+  // Funcion principal que maneja la inicialización de
+  const startTranslateFuntion = (stop, pitch) => {
     readMorse();
-    lightTranslation(stop, pitch);
-  }
-
+    translate(stop, pitch);
+  };
 
   /* Renderizado */
   return (
     <div className={`${"main"}`}>
-      <div className={`${"textareaMain"} ${binaryPulse !== "" ? "light" : "dark"}`}>
-        <textarea className={`${"textareaStyle"} `} id="stringTextarea" name="stringTextarea" placeholder="Introduce el texto a traducir" cols={60} rows={10}  onChange={(e) => {
-          sendData(e.target.value);
-        }} />
-        <textarea className={`${"textareaStyle"} `} id="morseTextarea" name="morseTextarea" cols={60} rows={10} value={morseData === "" ? "Introduce el texto a traducir" : morseData}/>
+      <div
+        className={`${"textareaMain"} ${binaryPulse !== "" ? "light" : "dark"}`}
+      >
+        <textarea
+          className={`${"textareaStyle"} `}
+          id="stringTextarea"
+          name="stringTextarea"
+          placeholder="Introduce el texto a traducir"
+          cols={60}
+          rows={10}
+          onChange={(e) => {
+            sendData(e.target.value);
+          }}
+        />
+        <textarea
+          className={`${"textareaStyle"} `}
+          id="morseTextarea"
+          name="morseTextarea"
+          cols={60}
+          rows={10}
+          value={morseData === "" ? "Introduce el texto a traducir" : morseData}
+        />
       </div>
       <div>
         <div className={"buttonsMain"}>
-          <button 
-          className={"shadow-inset-center buttonStyle"} 
-          onClick={() => {
-            lightMode(stopValue, pitchValue);
-            if (morsePulseArray.length !== 0) {
-              setPlayValue(!playValue); 
-            }
-            }}>
-            {
-              playValue ? <FontAwesomeIcon icon={faPause}/> : <FontAwesomeIcon icon={faPlay}/>
-            }
+          <button
+            className={"shadow-inset-center buttonStyle"}
+            onClick={() => {
+              if (stopValue !== true && playValue !== true) {
+                startTranslateFuntion(stopValue, pitchValue);
+                if (morsePulseArray.length !== 0) {
+                  setPlayValue(!playValue);
+                }
+              }
+            }}
+          >
+            {playValue ? (
+              <FontAwesomeIcon icon={faPause} />
+            ) : (
+              <FontAwesomeIcon icon={faPlay} />
+            )}
           </button>
-          <button 
-          className={"shadow-inset-center buttonStyle"} 
-          onClick={() => {setStopValue(!stopValue)}}>
-            {
-              stopValue ? <FontAwesomeIcon icon={faStop}/> : <FontAwesomeIcon icon={faStop}/>
-            }
+          <button
+            className={"shadow-inset-center buttonStyle"}
+            onClick={() => {
+              setStopValue(!stopValue);
+              if (playValue === true) {
+                setPlayValue(!playValue);
+              }
+            }}
+          >
+            {stopValue ? (
+              <FontAwesomeIcon icon={faCircleStop} />
+            ) : (
+              <FontAwesomeIcon icon={faStop} />
+            )}
           </button>
-          <button 
-          className={"shadow-inset-center buttonStyle"} 
-          onClick={() => setMuteValue(!muteValue)}>
-          {
-          muteValue ? <FontAwesomeIcon icon={faVolumeXmark} /> : 
-          (volumeValue >= 1.5 ? <FontAwesomeIcon icon={faVolumeHigh} /> : 
-          volumeValue >= 0.5 ? <FontAwesomeIcon icon={faVolumeLow} /> : <FontAwesomeIcon icon={faVolumeOff}/>) 
-          }
+          <button
+            className={"shadow-inset-center buttonStyle"}
+            onClick={() => setMuteValue(!muteValue)}
+          >
+            {muteValue ? (
+              <FontAwesomeIcon icon={faVolumeXmark} />
+            ) : volumeValue >= 1 ? (
+              <FontAwesomeIcon icon={faVolumeHigh} />
+            ) : volumeValue >= 0.2 ? (
+              <FontAwesomeIcon icon={faVolumeLow} />
+            ) : (
+              <FontAwesomeIcon icon={faVolumeOff} />
+            )}
           </button>
         </div>
         <div className={"inputRangesMain"}>
           <div className={"inputRange"}>
             <input
+              className={"rangeBar"}
               type="range"
               id="speed"
               name="speed"
               min={20}
               max={1500}
               value={speedValue}
-              onChange={ e => setSpeedValue(e.target.value)} />
+              onChange={(e) => setSpeedValue(e.target.value)}
+            />
             <label htmlFor="speed">Speed</label>
-            <label htmlFor="speed">{` (${speedValue} ${speedValue < 1000 ? "ms" : "seg"})`}</label>
+            <label htmlFor="speed">{` (${speedValue} ${
+              speedValue < 1000 ? "ms" : "seg"
+            })`}</label>
           </div>
           <div className={"inputRange"}>
             <input
+              className={"rangeBar"}
               type="range"
               id="pitch"
               name="pitch"
               min={100}
               max={1000}
               value={pitchValue}
-              onChange={ e => setPitchValue(e.target.value)} />
+              onChange={(e) => setPitchValue(e.target.value)}
+            />
             <label htmlFor="pitch">Pitch</label>
             <label htmlFor="pitch">{` (${pitchValue} Hz)`}</label>
           </div>
           <div className={"inputRange"}>
             <input
+              className={"rangeBarVolume"}
               type="range"
               id="volume"
               name="volume"
@@ -199,7 +246,8 @@ function Home() {
               max={2}
               step={0.01}
               value={muteValue === true ? 0 : volumeValue}
-              onChange={ e => setVolumeValue(e.target.value)} />
+              onChange={(e) => setVolumeValue(e.target.value)}
+            />
             <label htmlFor="volume">Volume</label>
           </div>
         </div>
